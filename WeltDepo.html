@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeltDepo - Depozit</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .app-wrapper { max-width: 1200px; margin: 0 auto; }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .header h1 { color: #2d3748; font-size: 26px; }
+        .badge { background: #fc8181; color: white; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-notif { background: #48bb78; color: white; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        @media (max-width: 768px) { .grid-2col { grid-template-columns: 1fr; } }
+        .field-group { margin-bottom: 18px; }
+        .field-group label { display: block; font-weight: 600; color: #4a5568; margin-bottom: 6px; font-size: 14px; }
+        .field-group input, .field-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: 0.3s;
+            font-family: inherit;
+            background: white;
+        }
+        .field-group select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a5568' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
+        .field-group input:focus, .field-group select:focus { outline: none; border-color: #f093fb; box-shadow: 0 0 0 3px rgba(240,147,251,0.15); }
+        .field-group input[readonly] { background: #f7fafc; color: #2d3748; }
+        .field-group select option { padding: 8px; }
+        .field-group select optgroup { font-weight: 700; color: #2d3748; }
+        .date-input-wrapper { position: relative; }
+        .date-input-wrapper input[type="text"] { padding-right: 44px; cursor: pointer; background: white; }
+        .date-input-wrapper .calendar-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 20px; cursor: pointer; background: none; border: none; padding: 4px 8px; }
+        .date-input-wrapper .calendar-icon:hover { opacity: 0.7; }
+        .field-group .date-hint { font-size: 12px; color: #718096; margin-top: 4px; }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 12px 16px;
+            background: #f7fafc;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+        }
+        .checkbox-group label { display: flex; align-items: center; gap: 8px; font-weight: 500; color: #4a5568; cursor: pointer; font-size: 15px; }
+        .checkbox-group input[type="checkbox"] { width: 20px; height: 20px; accent-color: #f093fb; cursor: pointer; }
+        .hint { font-size: 12px; color: #718096; margin-top: 5px; }
+        .btn-group { display: flex; gap: 12px; margin-top: 10px; }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+            flex: 1;
+        }
+        .btn-primary { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(245,87,108,0.3); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-secondary { background: #e2e8f0; color: #4a5568; }
+        .btn-secondary:hover { background: #cbd5e0; }
+        .status {
+            margin-top: 15px;
+            padding: 14px;
+            background: #f7fafc;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+            min-height: 50px;
+        }
+        .status.success { background: #c6f6d5; border-color: #48bb78; color: #22543d; }
+        .status.error { background: #fed7d7; border-color: #fc8181; color: #c53030; }
+        .status.info { background: #bee3f8; border-color: #63b3ed; color: #2a4365; }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #48bb78;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: none;
+            font-weight: 600;
+            animation: slideIn 0.5s ease-out;
+            z-index: 1000;
+            max-width: 400px;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .custom-calendar {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            z-index: 1000;
+            width: 290px;
+            margin-top: 4px;
+        }
+        .custom-calendar.active { display: block; }
+        .custom-calendar .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .custom-calendar .calendar-header button { background: none; border: none; font-size: 18px; cursor: pointer; padding: 4px 12px; border-radius: 6px; }
+        .custom-calendar .calendar-header button:hover { background: #f0f4fa; }
+        .custom-calendar .calendar-header .month-year { font-weight: 600; font-size: 16px; color: #2d3748; }
+        .custom-calendar table { width: 100%; border-collapse: collapse; }
+        .custom-calendar th { padding: 6px; font-size: 12px; color: #718096; font-weight: 600; text-align: center; }
+        .custom-calendar td { padding: 4px; text-align: center; }
+        .custom-calendar td button {
+            width: 34px;
+            height: 34px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: none;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        .custom-calendar td button:hover:not(:disabled) { background: #e2e8f0; }
+        .custom-calendar td button.selected { background: #f093fb; color: white; }
+        .custom-calendar td button:disabled { color: #cbd5e0; cursor: not-allowed; background: #f7fafc; }
+        .custom-calendar td button.today { font-weight: 700; border: 2px solid #f093fb; }
+        .custom-calendar .calendar-footer { margin-top: 10px; text-align: center; font-size: 11px; color: #e53e3e; border-top: 1px solid #e2e8f0; padding-top: 8px; }
+
+        .aviz-list { margin-bottom: 25px; }
+        .aviz-list h3 { color: #2d3748; margin-bottom: 12px; font-size: 18px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .aviz-list .count { background: #e2e8f0; padding: 2px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; color: #4a5568; }
+        .aviz-items {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+        @media (max-width: 768px) { .aviz-items { grid-template-columns: 1fr; } }
+        .aviz-item {
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            background: white;
+            user-select: none;
+        }
+        .aviz-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .aviz-item.selected { border-color: #f093fb; box-shadow: 0 0 0 3px rgba(240,147,251,0.3); background: #faf0ff; }
+        .aviz-item .nr { font-weight: 700; font-size: 16px; display: block; }
+        .aviz-item .client { font-size: 14px; color: #4a5568; }
+        .aviz-item .livrare { font-size: 12px; color: #718096; margin-top: 4px; }
+        .aviz-item .urgent { 
+            font-size: 11px; 
+            font-weight: 700; 
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            display: inline-block; 
+            margin-top: 4px;
+        }
+        .aviz-item .urgent.urgent-red { background: #fed7d7; color: #c53030; }
+        .aviz-item .urgent.urgent-orange { background: #fefcbf; color: #975a16; }
+        .aviz-item .urgent.urgent-green { background: #c6f6d5; color: #22543d; }
+        .aviz-item.urgent-red { background: #fed7d7; border-color: #fc8181; }
+        .aviz-item.urgent-orange { background: #fefcbf; border-color: #f6ad55; }
+        .aviz-item.urgent-green { background: #c6f6d5; border-color: #48bb78; }
+        .aviz-item .badge-selectat { position: absolute; top: 8px; right: 8px; background: #f093fb; color: white; padding: 2px 12px; border-radius: 12px; font-size: 10px; font-weight: 700; }
+        .aviz-item .data-livrare {
+            font-size: 12px;
+            color: #4a5568;
+            margin-top: 3px;
+        }
+        .aviz-item .btn-ma-ocup {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: 0.3s;
+            width: 100%;
+        }
+        .aviz-item .btn-ma-ocup:hover { background: #5a67d8; }
+        .aviz-item .btn-ma-ocup.preluat {
+            background: #48bb78;
+            cursor: default;
+        }
+        .aviz-item .btn-ma-ocup.preluat:hover { background: #48bb78; }
+        .aviz-item .preluat-info {
+            font-size: 12px;
+            color: #48bb78;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        .history-section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .history-header h2 { color: #2d3748; font-size: 20px; }
+        .history-table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        table th { background: #2c3e50; color: white; padding: 10px 12px; text-align: left; font-weight: 600; }
+        table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; }
+        table tr:hover { background: #f7fafc; }
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-badge.complet { background: #d4edda; color: #155724; }
+        .status-badge.partial { background: #fff3cd; color: #856404; }
+        .status-badge.incomplet { background: #f8d7da; color: #721c24; }
+        .status-badge.nou { background: #d1ecf1; color: #0c5460; }
+        .status-badge.preluat { background: #fefcbf; color: #975a16; }
+        .empty-state { text-align: center; padding: 30px; color: #a0aec0; }
+        
+        .info-aviz-selectat {
+            background: #ebf5fb;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+            display: none;
+        }
+        .info-aviz-selectat.active { display: block; }
+        .badge-aviz { display: inline-block; background: #3498db; color: white; padding: 2px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .urgent-badge { display: inline-block; padding: 2px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-left: 10px; }
+        .urgent-badge.red { background: #fed7d7; color: #c53030; }
+        .urgent-badge.orange { background: #fefcbf; color: #975a16; }
+        .urgent-badge.green { background: #c6f6d5; color: #22543d; }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-preluare {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalIn 0.3s ease-out;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        @keyframes modalIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-preluare .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 12px;
+        }
+        .modal-preluare .modal-header h3 {
+            color: #2d3748;
+            font-size: 20px;
+        }
+        .modal-preluare .modal-header .close-modal {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #718096;
+            line-height: 1;
+        }
+        .modal-preluare .modal-header .close-modal:hover { color: #e53e3e; }
+        .modal-preluare .aviz-info {
+            background: #f7fafc;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+        }
+        .modal-preluare .aviz-info p {
+            margin: 4px 0;
+            font-size: 14px;
+            color: #4a5568;
+        }
+        .modal-preluare .aviz-info strong { color: #2d3748; }
+        .modal-preluare .field-group { margin-bottom: 15px; }
+        .modal-preluare .field-group label { 
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5568;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .modal-preluare .field-group select,
+        .modal-preluare .field-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+        }
+        .modal-preluare .field-group select:focus,
+        .modal-preluare .field-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+        }
+        .modal-preluare input[type="date"] {
+            position: relative;
+        }
+        .modal-preluare input[type="date"]::-webkit-datetime-edit {
+            color: transparent;
+        }
+        .modal-preluare input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+            color: #2d3748;
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .modal-preluare input[type="date"]::-webkit-datetime-edit-day-field {
+            color: #2d3748;
+        }
+        .modal-preluare input[type="date"]::-webkit-datetime-edit-month-field {
+            color: #2d3748;
+        }
+        .modal-preluare input[type="date"]::-webkit-datetime-edit-year-field {
+            color: #2d3748;
+        }
+        .modal-preluare input[type="date"]::-webkit-datetime-edit-text {
+            color: #2d3748;
+        }
+        .modal-preluare input[type="time"]::-webkit-datetime-edit {
+            color: #2d3748;
+        }
+        .modal-preluare .btn-confirma {
+            width: 100%;
+            padding: 12px;
+            background: #48bb78;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 5px;
+        }
+        .modal-preluare .btn-confirma:hover { background: #38a169; }
+        .modal-preluare .btn-confirma:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        input[type="date"] {
+            position: relative;
+        }
+        input[type="date"]::-webkit-datetime-edit {
+            color: transparent;
+        }
+        input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+            color: #2d3748;
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        input[type="date"]::-webkit-datetime-edit-day-field {
+            color: #2d3748;
+        }
+        input[type="date"]::-webkit-datetime-edit-month-field {
+            color: #2d3748;
+        }
+        input[type="date"]::-webkit-datetime-edit-year-field {
+            color: #2d3748;
+        }
+        input[type="date"]::-webkit-datetime-edit-text {
+            color: #2d3748;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <div class="container">
+            <div class="header">
+                <h1>📦 WeltDepo</h1>
+                <span class="badge">Depozit</span>
+                <span id="notifBadge" class="badge-notif" style="display:none;">🔔 0</span>
+            </div>
+            
+            <!-- Lista avize de pregătit -->
+            <div class="aviz-list">
+                <h3>
+                    📋 Avize de pregătit
+                    <span class="count" id="avizCount">0</span>
+                    <span style="font-size: 13px; font-weight: 400; color: #718096; margin-left: 10px;">
+                        (click pe un aviz pentru detalii)
+                    </span>
+                </h3>
+                <div class="aviz-items" id="avizItems">
+                    <div class="empty-state" style="grid-column: 1 / -1;">📭 Nu sunt avize de pregătit.</div>
+                </div>
+            </div>
+            
+            <div class="info-aviz-selectat" id="infoAvizSelectat">
+                <strong>📋 Aviz selectat:</strong> 
+                <span class="badge-aviz" id="selectatNr">-</span>
+                <strong style="margin-left: 15px;">Client:</strong> 
+                <span id="selectatClient">-</span>
+                <div style="margin-top: 5px; font-size: 12px; color: #718096;">
+                    Data emitere: <span id="selectatDataEmitere">-</span> | 
+                    Livrare: <span id="selectatLivrare">-</span>
+                    <span id="selectatUrgenta"></span>
+                </div>
+                <div id="selectatPreluatInfo" style="margin-top: 5px; font-size: 13px; color: #48bb78; display: none;">
+                    ✅ Preluat de: <span id="selectatPreluatDe">-</span>
+                </div>
+            </div>
+            
+            <!-- Formular pregătire -->
+            <div style="border-top: 2px solid #e2e8f0; padding-top: 20px; margin-top: 5px;">
+                <h4 style="margin-bottom: 15px; color: #2d3748;">✏️ Completează pregătirea</h4>
+                
+                <div class="grid-2col">
+                    <div>
+                        <div class="field-group">
+                            <label>Aviz selectat</label>
+                            <input type="text" id="avizSelectat" readonly placeholder="Selectează un aviz din listă" style="background: #f7fafc; font-weight: 600; color: #2d3748; font-size: 16px;">
+                        </div>
+                        <div class="field-group">
+                            <label>1. Persoana care pregătește</label>
+                            <select id="persoana">
+                                <optgroup label="🏢 Welt">
+                                    <option value="Achref">Achref</option>
+                                    <option value="Anna">Anna</option>
+                                    <option value="Dan">Dan</option>
+                                    <option value="Leon">Leon</option>
+                                </optgroup>
+                                <optgroup label="🏭 Lagoudakis">
+                                    <option value="Erwin">Erwin</option>
+                                    <option value="Gabi">Gabi</option>
+                                    <option value="Radu">Radu</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="field-group">
+                            <label>2. Pregătit</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" class="pregatit-check" value="Parțial"> Parțial</label>
+                                <label><input type="checkbox" class="pregatit-check" value="DA"> DA</label>
+                                <label><input type="checkbox" class="pregatit-check" value="NU"> NU</label>
+                            </div>
+                            <div class="hint">⚠️ Bifează o singură opțiune</div>
+                        </div>
+                        <div class="field-group">
+                            <label>3. Data pregătire (ZZ.LL.AAAA)</label>
+                            <div class="date-input-wrapper">
+                                <input type="text" id="dataPregatire" placeholder="Selectează data" readonly>
+                                <button class="calendar-icon" onclick="toggleCalendar()">📅</button>
+                                <div class="custom-calendar" id="customCalendar"></div>
+                            </div>
+                            <div class="date-hint">📅 Click pe iconița 📅 pentru calendar</div>
+                        </div>
+                        <div class="field-group">
+                            <label>4. Mentiuni</label>
+                            <input type="text" id="mentiuni" placeholder="Observații">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="btnTrimite" onclick="trimitePregatire()">📤 Trimite Pregătire</button>
+                    <button class="btn btn-secondary" onclick="resetForm()">🔄 Reset</button>
+                </div>
+                
+                <div class="status" id="status">✅ Gata de preluare avize</div>
+            </div>
+        </div>
+        
+        <!-- Modal Preluare - FĂRĂ ISTORIC -->
+        <div class="modal-overlay" id="modalPreluare">
+            <div class="modal-preluare">
+                <div class="modal-header">
+                    <h3>📋 Preluare aviz</h3>
+                    <button class="close-modal" onclick="inchideModalPreluare()">✕</button>
+                </div>
+                <div class="aviz-info">
+                    <p><strong>Nr. Aviz:</strong> <span id="modalNrAviz">-</span></p>
+                    <p><strong>Client:</strong> <span id="modalClient">-</span></p>
+                    <p><strong>Data Livrare:</strong> <span id="modalLivrare">-</span></p>
+                </div>
+                <div class="field-group">
+                    <label>👤 Persoana care preia</label>
+                    <select id="modalPersoana">
+                        <optgroup label="🏢 Welt">
+                            <option value="Achref">Achref</option>
+                            <option value="Anna">Anna</option>
+                            <option value="Dan">Dan</option>
+                            <option value="Leon">Leon</option>
+                        </optgroup>
+                        <optgroup label="🏭 Lagoudakis">
+                            <option value="Erwin">Erwin</option>
+                            <option value="Gabi">Gabi</option>
+                            <option value="Radu">Radu</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label>📅 Data estimată pregătire (ZZ.LL.AAAA)</label>
+                    <input type="date" id="modalData">
+                </div>
+                <div class="field-group">
+                    <label>🕐 Ora estimată (format 24h)</label>
+                    <input type="time" id="modalOra" step="3600">
+                </div>
+                <button class="btn-confirma" id="btnConfirmaPreluare" onclick="confirmaPreluare()">✅ Confirmă preluare</button>
+            </div>
+        </div>
+        
+        <div class="history-section">
+            <div class="history-header">
+                <h2>📋 Istoric avize (ultimele 5)</h2>
+                <button class="btn btn-secondary" onclick="refreshHistory()" style="padding: 8px 20px; font-size: 13px; flex: 0;">🔄</button>
+            </div>
+            <div class="history-table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nr. Aviz</th>
+                            <th>Client</th>
+                            <th>Data Emitere</th>
+                            <th>Data Livrare</th>
+                            <th>Persoana</th>
+                            <th>Pregătire</th>
+                            <th>Data preg.</th>
+                            <th>Mentiuni</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr><td colspan="9" class="empty-state">📭 Niciun aviz încă.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================================
+        // CONFIGURARE
+        // ============================================================
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzOOI0Y0XjDcwPjfIezskt3mD4RxoyDtwpUkADk0D9Ds-ZYOmgs0ZknU5oKYqqqMp6dkA/exec';
+        const CACHE_KEY_PREGATIRE = 'weltdepo_data_pregatire';
+        const CACHE_KEY_SELECTED = 'weltdepo_selected_date';
+        
+        let avizeNoi = [];
+        let avizSelectat = null;
+        let notificariProcesate = new Set();
+        let currentDate = new Date();
+        let selectedDate = null;
+        let calendarOpen = false;
+        let avizInPreluare = null;
+        
+        // ============================================================
+        // FUNCȚII CACHE
+        // ============================================================
+        function salveazaDataInCache(data, dataISO) {
+            try { localStorage.setItem(CACHE_KEY_PREGATIRE, data); localStorage.setItem(CACHE_KEY_SELECTED, dataISO); } catch(e) {}
+        }
+        function citesteDataDinCache() {
+            try { const data = localStorage.getItem(CACHE_KEY_PREGATIRE); const dataISO = localStorage.getItem(CACHE_KEY_SELECTED); if (data && dataISO) return { data, dataISO }; } catch(e) {}
+            return null;
+        }
+        
+        // ============================================================
+        // FUNCȚII UTILITARE
+        // ============================================================
+        function formatDateRO(dateStr) {
+            if (!dateStr) return '-';
+            try {
+                if (typeof dateStr === 'string' && dateStr.match(/^\d{2}\.\d{2}\.\d{4}/)) return dateStr;
+                const date = new Date(dateStr);
+                if (isNaN(date.getTime())) return dateStr;
+                return `${String(date.getDate()).padStart(2,'0')}.${String(date.getMonth()+1).padStart(2,'0')}.${date.getFullYear()}`;
+            } catch(e) { return dateStr; }
+        }
+        function formatDateDisplay(date) { if (!date) return ''; return `${String(date.getDate()).padStart(2,'0')}.${String(date.getMonth()+1).padStart(2,'0')}.${date.getFullYear()}`; }
+        function toISOString(date) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`; }
+        function getToday() { const today = new Date(); today.setHours(0,0,0,0); return today; }
+        
+        // ============================================================
+        // CALCULEAZĂ URGENȚA
+        // ============================================================
+        function calculeazaUrgenta(dataLivrare, dataEmitere) {
+            if (!dataLivrare || !dataEmitere) {
+                return { class: 'urgent-green', text: '🟢 Normal', label: 'green' };
+            }
+            try {
+                let emitereDate = null;
+                if (typeof dataEmitere === 'string' && dataEmitere.includes('.')) {
+                    const parts = dataEmitere.split(',')[0].trim().split('.');
+                    if (parts.length === 3) {
+                        emitereDate = new Date(parts[2], parts[1]-1, parts[0]);
+                    }
+                }
+                if (!emitereDate || isNaN(emitereDate.getTime())) {
+                    emitereDate = new Date(dataEmitere);
+                }
+                if (!emitereDate || isNaN(emitereDate.getTime())) {
+                    return { class: 'urgent-green', text: '🟢 Normal', label: 'green' };
+                }
+                emitereDate.setHours(0, 0, 0, 0);
+                
+                let livrareDate = null;
+                if (typeof dataLivrare === 'string' && dataLivrare.includes('-')) {
+                    livrareDate = new Date(dataLivrare);
+                } else if (typeof dataLivrare === 'string' && dataLivrare.includes('.')) {
+                    const parts = dataLivrare.split('.');
+                    if (parts.length === 3) {
+                        livrareDate = new Date(parts[2], parts[1]-1, parts[0]);
+                    }
+                }
+                if (!livrareDate || isNaN(livrareDate.getTime())) {
+                    livrareDate = new Date(dataLivrare);
+                }
+                if (!livrareDate || isNaN(livrareDate.getTime())) {
+                    return { class: 'urgent-green', text: '🟢 Normal', label: 'green' };
+                }
+                livrareDate.setHours(0, 0, 0, 0);
+                
+                const diffDays = Math.ceil((livrareDate - emitereDate) / (1000*60*60*24));
+                if (diffDays === 0) {
+                    return { class: 'urgent-red', text: '🔴 URGENT - azi', label: 'red' };
+                } else if (diffDays === 1) {
+                    return { class: 'urgent-orange', text: `🟠 Urgent - mâine`, label: 'orange' };
+                } else if (diffDays > 1) {
+                    return { class: 'urgent-green', text: `🟢 Normal - ${diffDays} zile`, label: 'green' };
+                } else {
+                    return { class: 'urgent-red', text: '🔴 ÎNTRÂRZIAT', label: 'red' };
+                }
+            } catch(e) {
+                return { class: 'urgent-green', text: '🟢 Normal', label: 'green' };
+            }
+        }
+        
+        // ============================================================
+        // CALENDAR
+        // ============================================================
+        function toggleCalendar() { calendarOpen = !calendarOpen; if (calendarOpen) { renderCalendar(); document.getElementById('customCalendar').classList.add('active'); } else { document.getElementById('customCalendar').classList.remove('active'); } }
+        function closeCalendar() { calendarOpen = false; document.getElementById('customCalendar').classList.remove('active'); }
+        function renderCalendar() {
+            const calendar = document.getElementById('customCalendar');
+            const year = currentDate.getFullYear(), month = currentDate.getMonth();
+            const firstDay = new Date(year, month, 1), daysInMonth = new Date(year, month+1, 0).getDate(), startDay = firstDay.getDay();
+            const today = getToday(), todayISO = toISOString(today);
+            let html = `<div class="calendar-header"><button onclick="changeMonth(-1)">◀</button><span class="month-year">${firstDay.toLocaleString('ro-RO',{month:'long',year:'numeric'})}</span><button onclick="changeMonth(1)">▶</button></div><table><thead><tr><th>L</th><th>M</th><th>M</th><th>J</th><th>V</th><th>S</th><th>D</th></tr></thead><tbody>`;
+            let row = '<tr>';
+            for (let i=0; i<startDay; i++) row += '<td></td>';
+            const todayDate = new Date(); todayDate.setHours(0,0,0,0);
+            for (let day=1; day<=daysInMonth; day++) {
+                const date = new Date(year, month, day); date.setHours(0,0,0,0);
+                const dateISO = toISOString(date), isToday = dateISO === todayISO, isSelected = selectedDate && toISOString(selectedDate) === dateISO, isPast = date < todayDate;
+                row += `<td><button onclick="selectDate('${dateISO}')" class="${isSelected?'selected':''} ${isToday?'today':''}" ${isPast?'disabled':''}>${day}</button></td>`;
+                if ((startDay + day) % 7 === 0 || day === daysInMonth) { row += '</tr>'; if (day < daysInMonth) row += '<tr>'; }
+            }
+            html += row + '</tbody></table><div class="calendar-footer">⚠️ Zilele trecute nu pot fi selectate</div>';
+            calendar.innerHTML = html;
+        }
+        function changeMonth(delta) { currentDate.setMonth(currentDate.getMonth()+delta); renderCalendar(); }
+        function selectDate(dateISO) {
+            const date = new Date(dateISO), today = getToday();
+            if (date < today) { showToast('⚠️ Nu poți selecta zile trecute!','error'); return; }
+            selectedDate = date;
+            const dateDisplay = formatDateDisplay(date);
+            document.getElementById('dataPregatire').value = dateDisplay;
+            salveazaDataInCache(dateDisplay, dateISO);
+            closeCalendar();
+            showToast(`✅ Data selectată: ${dateDisplay}`,'success');
+        }
+        
+        // ============================================================
+        // SETEAZĂ DATA
+        // ============================================================
+        function setDefaultDate() {
+            const cached = citesteDataDinCache();
+            if (cached) {
+                const cachedDate = new Date(cached.dataISO);
+                const today = getToday();
+                if (cachedDate >= today) { document.getElementById('dataPregatire').value = cached.data; selectedDate = cachedDate; return; }
+            }
+            const today = getToday();
+            selectedDate = today;
+            const dateDisplay = formatDateDisplay(today);
+            document.getElementById('dataPregatire').value = dateDisplay;
+            salveazaDataInCache(dateDisplay, toISOString(today));
+        }
+        function resetFormular() {
+            document.getElementById('persoana').selectedIndex = 0;
+            document.querySelectorAll('.pregatit-check').forEach(cb => cb.checked = false);
+            document.getElementById('mentiuni').value = '';
+            setDefaultDate();
+            document.getElementById('status').className = 'status';
+            document.getElementById('status').innerHTML = '✅ Gata de preluare avize';
+        }
+        
+        // ============================================================
+        // MODAL PRELUARE - FĂRĂ ISTORIC
+        // ============================================================
+        function deschideModalPreluare(nrAviz) {
+            const aviz = avizeNoi.find(a => (a['Nr Aviz']||'').toString().trim() === nrAviz);
+            if (!aviz) return;
+            
+            avizInPreluare = aviz;
+            document.getElementById('modalNrAviz').textContent = nrAviz;
+            document.getElementById('modalClient').textContent = aviz['Client'] || '-';
+            document.getElementById('modalLivrare').textContent = formatDateRO(aviz['Data Livrare']);
+            
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('modalData').value = toISOString(tomorrow);
+            document.getElementById('modalOra').value = '12:00';
+            
+            const btn = document.getElementById('btnConfirmaPreluare');
+            btn.textContent = '✅ Confirmă preluare';
+            btn.style.background = '#48bb78';
+            btn.disabled = false;
+            document.querySelector('.modal-preluare .modal-header h3').textContent = '📋 Preluare aviz';
+            
+            document.getElementById('modalPreluare').classList.add('active');
+        }
+        
+        function inchideModalPreluare() {
+            document.getElementById('modalPreluare').classList.remove('active');
+            avizInPreluare = null;
+            
+            const btn = document.getElementById('btnConfirmaPreluare');
+            btn.textContent = '✅ Confirmă preluare';
+            btn.style.background = '#48bb78';
+            btn.disabled = false;
+        }
+        
+        document.getElementById('modalPreluare').addEventListener('click', function(e) {
+            if (e.target === this) {
+                inchideModalPreluare();
+            }
+        });
+        
+        // ============================================================
+        // CONFIRMĂ PRELUARE - FĂRĂ ISTORIC ÎN MODAL
+        // ============================================================
+        async function confirmaPreluare() {
+            if (!avizInPreluare) return;
+            
+            const nrAviz = (avizInPreluare['Nr Aviz']||'').toString().trim();
+            const persoana = document.getElementById('modalPersoana').value;
+            const dataEstimata = document.getElementById('modalData').value;
+            const oraEstimata = document.getElementById('modalOra').value;
+            
+            if (!persoana) {
+                showToast('⚠️ Selectează o persoană!', 'error');
+                return;
+            }
+            if (!dataEstimata) {
+                showToast('⚠️ Selectează data estimată!', 'error');
+                return;
+            }
+            if (!oraEstimata) {
+                showToast('⚠️ Selectează ora estimată!', 'error');
+                return;
+            }
+            
+            const selectPersoana = document.getElementById('modalPersoana');
+            const option = selectPersoana.options[selectPersoana.selectedIndex];
+            const optgroup = option.parentElement;
+            const grup = optgroup.label.includes('Welt') ? 'Welt' : 'Lagoudakis';
+            
+            const btn = document.getElementById('btnConfirmaPreluare');
+            btn.disabled = true;
+            btn.textContent = '⏳ Se preia...';
+            
+            try {
+                const url = `${SCRIPT_URL}?action=preiaAviz&nrAviz=${encodeURIComponent(nrAviz)}&persoana=${encodeURIComponent(persoana)}&grup=${encodeURIComponent(grup)}&dataEstimata=${encodeURIComponent(dataEstimata)}&oraEstimata=${encodeURIComponent(oraEstimata)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.error) {
+                    showToast('❌ Eroare: ' + data.error, 'error');
+                    btn.disabled = false;
+                    btn.textContent = '✅ Confirmă preluare';
+                } else {
+                    showToast(`✅ Avizul ${nrAviz} preluat de ${persoana}!`, 'success');
+                    
+                    btn.textContent = '✅ Preluat cu succes!';
+                    btn.style.background = '#48bb78';
+                    document.querySelector('.modal-preluare .modal-header h3').textContent = '✅ Aviz preluat!';
+                    
+                    // Închide modal după 2 secunde (fără istoric afișat)
+                    setTimeout(() => {
+                        inchideModalPreluare();
+                        // Reîmprospătează lista - AVIZUL RĂMÂNE (status preluat)
+                        refreshAvize();
+                        refreshHistory();
+                        btn.textContent = '✅ Confirmă preluare';
+                        btn.style.background = '#48bb78';
+                        btn.disabled = false;
+                    }, 2000);
+                }
+            } catch(error) {
+                showToast('❌ Eroare: ' + error.message, 'error');
+                btn.disabled = false;
+                btn.textContent = '✅ Confirmă preluare';
+            }
+        }
+        
+        // ============================================================
+        // ÎNCARCĂ AVIZELE
+        // ============================================================
+        async function refreshAvize() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getAvizeNoi`);
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    avizeNoi = data.filter(a => {
+                        const status = (a.Status || '').toString().trim();
+                        return status === 'nou' || status === 'preluat';
+                    });
+                    afiseazaAvize();
+                    if (avizSelectat) {
+                        const exista = avizeNoi.some(a => (a['Nr Aviz']||'').toString().trim() === (avizSelectat['Nr Aviz']||'').toString().trim());
+                        if (!exista) { 
+                            avizSelectat = null; 
+                            document.getElementById('avizSelectat').value = ''; 
+                            document.getElementById('infoAvizSelectat').classList.remove('active'); 
+                        }
+                    }
+                }
+            } catch(error) { 
+                console.error('Eroare încărcare avize:', error); 
+            }
+        }
+        
+        // ============================================================
+        // AFIȘEAZĂ AVIZELE
+        // ============================================================
+        function afiseazaAvize() {
+            const container = document.getElementById('avizItems');
+            const count = document.getElementById('avizCount');
+            if (!avizeNoi || avizeNoi.length === 0) {
+                container.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1;">📭 Nu sunt avize de pregătit.</div>`;
+                count.textContent = '0';
+                return;
+            }
+            count.textContent = avizeNoi.length;
+            container.innerHTML = avizeNoi.map(aviz => {
+                const nrAviz = (aviz['Nr Aviz'] || '-').toString().trim();
+                const client = aviz['Client'] || '-';
+                const livrare = aviz['Data Livrare'] || '';
+                const dataEmitere = aviz['Data Emitere'] || '';
+                const status = (aviz.Status || 'nou').toString().trim();
+                const persoana = aviz.Persoana || '';
+                const urgenta = calculeazaUrgenta(livrare, dataEmitere);
+                const isSelected = avizSelectat && (avizSelectat['Nr Aviz']||'').toString().trim() === nrAviz;
+                const livrareFormat = formatDateRO(livrare);
+                const isPreluat = status === 'preluat';
+                const preluatDe = isPreluat ? persoana : '';
+                
+                return `<div class="aviz-item ${urgenta.class} ${isSelected ? 'selected' : ''}" onclick="selectAviz('${nrAviz}')">
+                    <span class="nr">📄 ${nrAviz}</span>
+                    <span class="client">👤 ${client}</span>
+                    <div class="data-livrare">📅 Livrare: ${livrareFormat}</div>
+                    <span class="urgent ${urgenta.class}">${urgenta.text}</span>
+                    ${isPreluat ? `<div class="preluat-info">✅ Preluat de: ${preluatDe}</div>` : ''}
+                    <button class="btn-ma-ocup ${isPreluat ? 'preluat' : ''}" 
+                            onclick="event.stopPropagation(); ${isPreluat ? '' : "deschideModalPreluare('"+nrAviz+"')"}">
+                        ${isPreluat ? '✅ Preluat' : '📌 Ma ocup eu'}
+                    </button>
+                    ${isSelected ? '<span class="badge-selectat">✅ SELECTAT</span>' : ''}
+                </div>`;
+            }).join('');
+        }
+        
+        // ============================================================
+        // SELECTEAZĂ UN AVIZ
+        // ============================================================
+        function selectAviz(nrAviz) {
+            nrAviz = nrAviz.toString().trim();
+            let avizGasit = null;
+            for (let i = 0; i < avizeNoi.length; i++) {
+                const avizNr = (avizeNoi[i]['Nr Aviz'] || '').toString().trim();
+                if (avizNr === nrAviz) { avizGasit = avizeNoi[i]; break; }
+            }
+            if (!avizGasit) { showToast('❌ Avizul nu a fost găsit!','error'); return; }
+            avizSelectat = avizGasit;
+            const inputSelectat = document.getElementById('avizSelectat');
+            inputSelectat.value = nrAviz + ' - ' + avizGasit['Client'];
+            inputSelectat.style.borderColor = '#f093fb';
+            inputSelectat.style.backgroundColor = '#faf0ff';
+            const infoDiv = document.getElementById('infoAvizSelectat');
+            infoDiv.classList.add('active');
+            document.getElementById('selectatNr').textContent = nrAviz;
+            document.getElementById('selectatClient').textContent = avizGasit['Client'] || '-';
+            document.getElementById('selectatDataEmitere').textContent = formatDateRO(avizGasit['Data Emitere']);
+            document.getElementById('selectatLivrare').textContent = formatDateRO(avizGasit['Data Livrare']);
+            const urgenta = calculeazaUrgenta(avizGasit['Data Livrare'], avizGasit['Data Emitere']);
+            document.getElementById('selectatUrgenta').innerHTML = `<span class="urgent-badge ${urgenta.label}">${urgenta.text}</span>`;
+            
+            const preluatInfo = document.getElementById('selectatPreluatInfo');
+            if (avizGasit.Status === 'preluat' && avizGasit.Persoana) {
+                preluatInfo.style.display = 'block';
+                document.getElementById('selectatPreluatDe').textContent = avizGasit.Persoana + (avizGasit['Data estimata'] ? ' (estimat: ' + avizGasit['Data estimata'] + ')' : '');
+            } else {
+                preluatInfo.style.display = 'none';
+            }
+            
+            afiseazaAvize();
+            document.getElementById('status').className = 'status info';
+            document.getElementById('status').innerHTML = `📋 Aviz selectat: ${nrAviz} - Client: ${avizGasit['Client']}`;
+            showToast(`✅ Aviz ${nrAviz} selectat`,'info');
+        }
+        
+        // ============================================================
+        // NOTIFICĂRI
+        // ============================================================
+        async function verificaNotificariDepozit() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getNotificariDepozit`);
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    const notificariNoi = data.filter(n => !n.citit && !notificariProcesate.has(n.id));
+                    
+                    const badge = document.getElementById('notifBadge');
+                    if (notificariNoi.length > 0) {
+                        notificariNoi.forEach(n => notificariProcesate.add(n.id));
+                        badge.style.display = 'inline-block';
+                        badge.textContent = `🔔 ${notificariNoi.length}`;
+                        playNotificationSound();
+                        await refreshAvize();
+                        refreshHistory();
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            } catch(error) { console.log('Eroare notificări:', error); }
+        }
+        
+        // ============================================================
+        // TRIMITE PREGĂTIRE
+        // ============================================================
+        async function trimitePregatire() {
+            if (!avizSelectat) { showToast('⚠️ Selectează un aviz!','error'); return; }
+            const nrAviz = (avizSelectat['Nr Aviz'] || '').toString().trim();
+            const selectPersoana = document.getElementById('persoana');
+            const persoana = selectPersoana.value;
+            const selectedIndex = selectPersoana.selectedIndex;
+            const option = selectPersoana.options[selectedIndex];
+            const optgroup = option.parentElement;
+            const grup = optgroup.label.includes('Welt') ? 'Welt' : 'Lagoudakis';
+            if (!persoana) { showToast('⚠️ Selectează o persoană!','error'); return; }
+            const checkboxes = document.querySelectorAll('.pregatit-check:checked');
+            if (checkboxes.length === 0) { showToast('⚠️ Selectează o opțiune pentru Pregătit!','error'); return; }
+            if (checkboxes.length > 1) { showToast('⚠️ Bifează o singură opțiune!','error'); return; }
+            const pregatire = checkboxes[0].value;
+            const dataPregatire = document.getElementById('dataPregatire').value.trim();
+            if (!dataPregatire) { showToast('⚠️ Selectează data pregătirii!','error'); return; }
+            const mentiuni = document.getElementById('mentiuni').value.trim() || '';
+            const btn = document.getElementById('btnTrimite');
+            btn.disabled = true;
+            btn.textContent = '⏳ Trimitere...';
+            document.getElementById('status').className = 'status info';
+            document.getElementById('status').innerHTML = '⏳ Se trimite...';
+            const dataPregatireISO = toISOString(selectedDate);
+            try {
+                const url = `${SCRIPT_URL}?action=addPregatire&nrAviz=${encodeURIComponent(nrAviz)}&persoana=${encodeURIComponent(persoana)}&pregatire=${encodeURIComponent(pregatire)}&dataPregatire=${encodeURIComponent(dataPregatireISO)}&mentiuni=${encodeURIComponent(mentiuni)}&grup=${encodeURIComponent(grup)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.error) {
+                    document.getElementById('status').className = 'status error';
+                    document.getElementById('status').innerHTML = '❌ Eroare: ' + data.error;
+                    showToast('❌ Eroare: ' + data.error, 'error');
+                } else {
+                    let statusText = data.status || '';
+                    let emoji = '';
+                    if (statusText === 'complet') { statusText = 'Complet'; emoji = '✅'; }
+                    else if (statusText === 'partial') { statusText = 'Parțial'; emoji = '🟡'; }
+                    else if (statusText === 'incomplet') { statusText = 'Incomplet'; emoji = '❌'; }
+                    document.getElementById('status').className = 'status success';
+                    document.getElementById('status').innerHTML = `${emoji} Avizul ${nrAviz} - ${statusText} (${grup})`;
+                    showToast(`✅ Avizul ${nrAviz} - ${statusText} (${grup})`, 'success');
+                    
+                    resetFormular();
+                    avizSelectat = null;
+                    document.getElementById('avizSelectat').value = '';
+                    document.getElementById('avizSelectat').style.borderColor = '#e2e8f0';
+                    document.getElementById('avizSelectat').style.backgroundColor = '#f7fafc';
+                    document.getElementById('infoAvizSelectat').classList.remove('active');
+                    
+                    playNotificationSound();
+                    await refreshAvize();
+                    refreshHistory();
+                }
+            } catch(error) {
+                document.getElementById('status').className = 'status error';
+                document.getElementById('status').innerHTML = '❌ Eroare: ' + error.message;
+                showToast('❌ Eroare: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📤 Trimite Pregătire';
+            }
+        }
+        
+        function resetForm() {
+            resetFormular();
+            avizSelectat = null;
+            document.getElementById('avizSelectat').value = '';
+            document.getElementById('avizSelectat').style.borderColor = '#e2e8f0';
+            document.getElementById('avizSelectat').style.backgroundColor = '#f7fafc';
+            document.getElementById('infoAvizSelectat').classList.remove('active');
+            refreshAvize();
+            showToast('🔄 Resetat','info');
+        }
+        
+        // ============================================================
+        // ISTORIC
+        // ============================================================
+        async function refreshHistory() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getAvize`);
+                const data = await response.json();
+                const tbody = document.getElementById('historyBody');
+                if (!Array.isArray(data) || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">📭 Niciun aviz încă.</td></tr>';
+                    return;
+                }
+                const last5 = data.slice(0, 5);
+                tbody.innerHTML = last5.map(row => {
+                    const status = row.Status || 'nou';
+                    let statusClass = 'nou', statusText = '📌 Nou';
+                    if (status === 'complet') { statusClass = 'complet'; statusText = '✅ Complet'; }
+                    else if (status === 'partial') { statusClass = 'partial'; statusText = '🟡 Parțial'; }
+                    else if (status === 'incomplet') { statusClass = 'incomplet'; statusText = '❌ Incomplet'; }
+                    else if (status === 'preluat') { statusClass = 'preluat'; statusText = '📋 Preluat'; }
+                    let bgColor = '';
+                    if (status === 'complet') bgColor = '#d4edda';
+                    else if (status === 'partial') bgColor = '#fff3cd';
+                    else if (status === 'incomplet') bgColor = '#f8d7da';
+                    else if (status === 'preluat') bgColor = '#fefcbf';
+                    return `<tr style="${bgColor ? 'background:'+bgColor+';' : ''}">
+                        <td><strong>${row['Nr Aviz'] || '-'}</strong></td>
+                        <td>${row['Client'] || '-'}</td>
+                        <td>${formatDateRO(row['Data Emitere'])}</td>
+                        <td>${formatDateRO(row['Data Livrare'])}</td>
+                        <td>${row['Persoana'] || '-'}</td>
+                        <td>${row['Pregatire'] || '-'}</td>
+                        <td>${formatDateRO(row['Data pregatire'])}</td>
+                        <td>${row['Mentiuni'] || '-'}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    </tr>`;
+                }).join('');
+            } catch(error) { console.error('❌ Eroare istoric:', error); }
+        }
+        
+        // ============================================================
+        // SUNET
+        // ============================================================
+        function playNotificationSound() {
+            try {
+                const audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+                const osc1 = audioCtx.createOscillator();
+                const gain1 = audioCtx.createGain();
+                osc1.connect(gain1);
+                gain1.connect(audioCtx.destination);
+                osc1.frequency.value = 1000;
+                osc1.type = 'sine';
+                gain1.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gain1.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc1.start(audioCtx.currentTime);
+                osc1.stop(audioCtx.currentTime + 0.4);
+                setTimeout(() => {
+                    const osc2 = audioCtx.createOscillator();
+                    const gain2 = audioCtx.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(audioCtx.destination);
+                    osc2.frequency.value = 1300;
+                    osc2.type = 'sine';
+                    gain2.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                    gain2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                    osc2.start(audioCtx.currentTime);
+                    osc2.stop(audioCtx.currentTime + 0.2);
+                }, 500);
+            } catch(e) { /* ignorăm */ }
+        }
+        
+        // ============================================================
+        // PREVINE BIFAREA MULTIPLĂ
+        // ============================================================
+        document.querySelectorAll('.pregatit-check').forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (this.checked) {
+                    document.querySelectorAll('.pregatit-check').forEach(other => { if (other !== this) other.checked = false; });
+                }
+            });
+        });
+        
+        // ============================================================
+        // EVENIMENTE
+        // ============================================================
+        document.addEventListener('click', function(event) {
+            const wrapper = document.querySelector('.date-input-wrapper');
+            if (wrapper && !wrapper.contains(event.target)) closeCalendar();
+        });
+        
+        // ============================================================
+        // TOAST
+        // ============================================================
+        function showToast(message, type='success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            toast.style.background = type === 'error' ? '#fc8181' : type === 'info' ? '#4299e1' : '#48bb78';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.style.display = 'none';
+            }, 5000);
+        }
+        
+        // ============================================================
+        // INITIALIZARE
+        // ============================================================
+        setDefaultDate();
+        refreshAvize();
+        refreshHistory();
+        
+        setInterval(verificaNotificariDepozit, 3000);
+        setTimeout(verificaNotificariDepozit, 1000);
+        
+        console.log('📦 WeltDepo - Aplicație Depozit');
+        console.log('✅ Avizul rămâne în listă după preluare (status preluat)');
+        console.log('✅ Poate fi selectat pentru completare');
+        console.log('✅ Dispare doar după completare (DA/Parțial/NU)');
+        console.log('✅ Istoricul preluărilor NU mai apare în modal');
+    </script>
+</body>
+</html>
